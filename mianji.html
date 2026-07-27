@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>时序遥感影像演变</title>
+<style>
+:root{
+    --main-color:#3663ad;
+    --gray-light:#f3f5f8;
+    --gray:#d8dde4;
+    --text:#222831;
+}
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+body {
+    background-color: var(--gray-light);
+    font-family: "Microsoft YaHei",system-ui,sans-serif;
+    color:var(--text);
+    padding:40px 20px;
+}
+.wrapper{
+    max-width:1000px;
+    margin:0 auto;
+    /* 外层容器背景与图片容器统一，消除白色间隙 */
+    background:#f0f2f5;
+    border-radius:0;
+    padding:0;
+    box-shadow: none;
+}
+/* 主影像容器 */
+.view-box{
+    position:relative;
+    width:100%;
+    height:620px;
+    overflow:hidden;
+    border-radius:0;
+    background:#f0f2f5;
+}
+.view-box img{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    opacity:0;
+    transition:opacity 0.8s ease;
+}
+.view-box img.active{
+    opacity:1;
+}
+.year-tip{
+    text-align:center;
+    margin:20px 0 8px;
+    font-size:17px;
+    letter-spacing:1px;
+}
+.fvc-tip{
+    text-align:center;
+    font-size:16px;
+    color:#3663ad;
+    font-weight:500;
+    margin-bottom:16px;
+}
+/* 时间轴导航 */
+.timeline{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:relative;
+    margin-top:32px;
+    padding:0 12px;
+}
+.timeline::before{
+    content:"";
+    position:absolute;
+    height:3px;
+    background:var(--gray);
+    left:16px;
+    right:16px;
+    top:16px;
+    z-index:1;
+}
+.time-node{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    cursor:pointer;
+    position:relative;
+    z-index:2;
+}
+.dot{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    background:#fff;
+    border:3px solid var(--gray);
+    transition:all 0.3s ease;
+    margin-bottom:8px;
+}
+.time-node.active .dot{
+    border-color:var(--main-color);
+    background:var(--main-color);
+    box-shadow:0 0 0 4px rgba(54, 99, 173, 0.2);
+}
+.time-node:hover .dot{
+    border-color:var(--main-color);
+}
+.label{
+    font-size:15px;
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="view-box" id="mainView">
+        <img src="1985.png" class="active" alt="1985">
+        <img src="1995.png" alt="1995">
+        <img src="2015.png" alt="2015">
+        <img src="2025.png" alt="2025">
+    </div>
+    <div class="year-tip" id="showYear">当前年份：1985年</div>
+    <div class="fvc-tip" id="showFVC">植被覆盖区域占比：39%</div>
+
+    <div class="timeline">
+        <div class="time-node active" data-index="0">
+            <div class="dot"></div>
+            <span class="label">1985</span>
+        </div>
+        <div class="time-node" data-index="1">
+            <div class="dot"></div>
+            <span class="label">1995</span>
+        </div>
+        <div class="time-node" data-index="2">
+            <div class="dot"></div>
+            <span class="label">2015</span>
+        </div>
+        <div class="time-node" data-index="3">
+            <div class="dot"></div>
+            <span class="label">2025</span>
+        </div>
+    </div>
+</div>
+
+<script>
+const imgs = document.querySelectorAll(".view-box img");
+const nodes = document.querySelectorAll(".time-node");
+const showYearText = document.getElementById("showYear");
+const showFvcText = document.getElementById("showFVC");
+const mainBox = document.getElementById("mainView");
+const yearList = ["1985年","1995年","2015年","2025年"];
+const fvcList = ["39%","42%","55%","67%"];
+
+let current = 0;
+let timer;
+const interval = 2500; // 2.5秒切换一张，如需更快改为2000，更慢改为3000
+
+function switchTo(idx){
+    current = idx;
+    imgs.forEach(img=>img.classList.remove("active"));
+    imgs[current].classList.add("active");
+    nodes.forEach(n=>n.classList.remove("active"));
+    nodes[current].classList.add("active");
+    showYearText.textContent = "当前年份："+yearList[current];
+    showFvcText.textContent = "植被覆盖区域占比：" + fvcList[current];
+}
+
+function autoPlay(){
+    timer = setInterval(()=>{
+        current = (current+1) % imgs.length;
+        switchTo(current);
+    },interval);
+}
+autoPlay();
+
+mainBox.addEventListener("mouseenter",()=>clearInterval(timer));
+mainBox.addEventListener("mouseleave",autoPlay);
+
+nodes.forEach(node=>{
+    node.addEventListener("click",()=>{
+        const i = Number(node.dataset.index);
+        switchTo(i);
+        clearInterval(timer);
+        autoPlay();
+    })
+})
+</script>
+
+</body>
+</html>
